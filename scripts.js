@@ -1,22 +1,32 @@
-const postItem = async (nomeAluno, emailAluno, dataAtual) => {
+/*
+  --------------------------------------------------------------------------------------
+  Função para adicionar um novo aluno na lista do servidor via requisição POST
+  --------------------------------------------------------------------------------------
+*/
+const postItem = (nomeAluno, emailAluno, dataNascimento) => {
+    const formData = new FormData();
+    formData.append('nome', nomeAluno);
+    formData.append('email', emailAluno);
+    formData.append('data_nascimento', dataNascimento);
     
-    //rever url do fetch 
-    await fetch('http://127.0.0.1:5501/alunos', {
+    let url = 'http://127.0.0.1:8080/alunos'
+    fetch(url, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ nome: nomeAluno, email: emailAluno, dataCadastro: dataAtual })
-    }).then((response) => response.json())
+        body: formData
+    })
+      .then((response) => response.json()) 
+        .then((data) => { 
+            console.log('Dados do aluno enviados com sucesso:', data);
+            insertList(data.id_aluno, data.nome, data.email, data.data_nascimento, data.data_cadastro);
+        })
         .catch((error) => {
             console.error('Erro ao enviar dados do aluno:', error);
         });
 }
 
-
 /*
   --------------------------------------------------------------------------------------
-  Função para criar um botão close para cada item da lista
+  Funções para criar um botão close e um de iniciar atividade para cada item da lista
   --------------------------------------------------------------------------------------
 */
 const insertButtonDelete = (parent) => {
@@ -28,6 +38,18 @@ const insertButtonDelete = (parent) => {
   button.appendChild(txt);
   parent.appendChild(button);
 }
+
+const insertButtonAtividade = (parent) => {
+  let button = document.createElement("button");
+  let txt = document.createTextNode("Iniciar Atividade");
+  button.className = "btn btn-success btn-sm";
+  button.id = "startActivity";
+  button.type = "button";
+  button.appendChild(txt);
+  parent.appendChild(button);
+};
+
+//criar mais um botão para visualizar atividade de um aluno
 
 /*
   --------------------------------------------------------------------------------------
@@ -50,23 +72,58 @@ const removeElement = () => {
   }
 }
 
+/*
+  --------------------------------------------------------------------------------------
+  Função para iniciar uma atividade para o aluno de acordo com o click no botão iniciar atividade
+  --------------------------------------------------------------------------------------
+*/
+const startActivity = () => {
+  let start = document.getElementsByClassName("btn btn-success btn-sm");
+  let i;
+  for (i = 0; i < start.length; i++) {
+    start[i].onclick = function () {
+      let div = this.parentElement.parentElement;
+      const idItem = div.getElementsByTagName('td')[0].innerHTML;
+      if(confirm("Tem certeza que deseja iniciar a atividade para o aluno?")) {
+        startStudentActivity(idItem)
+        alert("Atividade iniciada!")
+      }
+    } 
+  }
+}
+
+
+function formatarDataBR(dataISO) {
+    if (!dataISO) return '';
+    // Aceita tanto 'YYYY-MM-DD' quanto 'YYYY-MM-DDTHH:mm:ss'
+    const data = new Date(dataISO);
+    if (isNaN(data)) return dataISO; // Se não for data válida, retorna original
+    const dia = String(data.getDate()).padStart(2, '0');
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const ano = data.getFullYear();
+    return `${dia}/${mes}/${ano}`;
+}
+
+
 // Função para inserir um novo aluno na tabela
-function insertList(nome, email, dataAtual) {
+function insertList(id_aluno, nome, email, data_nascimento, data_cadastro) {
     const tabela = document.getElementById('studentsTable').getElementsByTagName('tbody')[0];
     const novaLinha = tabela.insertRow();
 
-    // Número da linha (incremental)
-    const numero = tabela.rows.length;
-
     // Inserindo as células
-    novaLinha.insertCell(0).innerText = numero;
+    novaLinha.insertCell(0).innerText = id_aluno;
     novaLinha.insertCell(1).innerText = nome;
     novaLinha.insertCell(2).innerText = email;
-    novaLinha.insertCell(3).innerText = dataAtual;
-    // Botão de deletar aluno
-    insertButtonDelete(novaLinha.insertCell(-1));
+    novaLinha.insertCell(3).innerText = formatarDataBR(data_nascimento);
+    novaLinha.insertCell(4).innerText = formatarDataBR(data_cadastro);
+
+    // Célula de ações
+    const cellAcoes = novaLinha.insertCell(-1);
+    insertButtonAtividade(cellAcoes);
+    insertButtonDelete(cellAcoes);
     
     removeElement()
+    startActivity()
 }
 
 // Função para lidar com o envio do formulário de cadastro de aluno
@@ -77,25 +134,20 @@ document.addEventListener('DOMContentLoaded', function () {
             event.preventDefault();
 
             // Obtém os valores dos campos
-            const nome = form.querySelector('input[id="NomeAluno"]').value.trim();
+            const nome = form.querySelector('input[id="nomeAluno"]').value.trim();
             const email = form.querySelector('input[id="emailAluno"]').value.trim();
-
-            // Data atual formatada
-            const dataAtual = new Date();
-            const dia = String(dataAtual.getDate()).padStart(2, '0');
-            const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
-            const ano = dataAtual.getFullYear();
-            const dataFormatada = `${dia}/${mes}/${ano}`;
+            const dataNascimento = form.querySelector('input[id="dataNascimento"]').value.trim();
 
             // Exemplo de uso: exibe no console (substitua por sua lógica de requisição)
             console.log('Nome:', nome);
             console.log('Email:', email);
-            postItem(nome, email, dataFormatada);
-            insertList(nome, email, dataFormatada);
+            console.log('Data de Nascimento:', dataNascimento);
+            postItem(nome, email, dataNascimento);
 
 
-            form.querySelector('input[id="NomeAluno"]').value = '';
+            form.querySelector('input[id="nomeAluno"]').value = '';
             form.querySelector('input[id="emailAluno"]').value = '';
+            form.querySelector('input[id="dataNascimento"]').value = '';
 
             // Fechar o modal após o envio
             const modalElement = document.getElementById('exampleModal');
@@ -111,9 +163,8 @@ document.addEventListener('DOMContentLoaded', function () {
   --------------------------------------------------------------------------------------
 */
 const deleteStudentById = (id_aluno) => {
-  if (!confirm("Tem certeza que deseja deletar este aluno?")) return;
 
-  fetch(`http://127.0.0.1:5501/alunos/${id_aluno}`, {
+  fetch(`http://127.0.0.1:8080/alunos?id_aluno=${id_aluno}`, {
     method: 'DELETE'
   })
     .then((response) => response.json())
@@ -122,4 +173,25 @@ const deleteStudentById = (id_aluno) => {
       alert('Erro ao deletar aluno.');
     });
 }
-//recuperar atividade
+/*
+  --------------------------------------------------------------------------------------
+  Função para iniciar uma atividade para o aluno via requisição POST
+  --------------------------------------------------------------------------------------
+*/
+const startStudentActivity = (id_aluno) => {
+
+  fetch(`http://127.0.0.1:8080/atividades?id_aluno=${id_aluno}`, {
+    method: 'POST'
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log('Atividade iniciada com sucesso:', data);
+      alert('Atividade iniciada com sucesso!');
+    })
+    .catch(error => {
+      console.error('Erro:', error);
+      alert('Erro ao iniciar atividade.');
+    });
+}
+
+//recuperar atividade de um aluno
