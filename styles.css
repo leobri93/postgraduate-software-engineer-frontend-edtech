@@ -1,0 +1,24 @@
+#deleteStudent {
+    margin: 4px;
+    width: 25%;
+}
+
+#startActivity {
+    width: 25%;
+}
+
+#listActivity {
+    width: 25%;
+}
+
+#BotaoCadastro{
+    margin-right: 20px;
+}
+
+#mainRow{
+    margin-top: 100px;
+}
+
+#exampleModal .modal-dialog {
+    width: 25vw;      
+}
