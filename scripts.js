@@ -3,24 +3,28 @@
   Função para adicionar um novo aluno na lista do servidor via requisição POST
   --------------------------------------------------------------------------------------
 */
-const postItem = (nomeAluno, emailAluno, dataNascimento) => {
-    const formData = new FormData();
-    formData.append('nome', nomeAluno);
-    formData.append('email', emailAluno);
-    formData.append('data_nascimento', dataNascimento);
+const postItem = (nomeAluno, emailAluno, dataNascimento, cepAluno) => {
+  const formData = new FormData();
+  formData.append('nome', nomeAluno);
+  formData.append('email', emailAluno);
+  formData.append('data_nascimento', dataNascimento);
+
+  // Sanitiza o CEP: remove qualquer caractere que não seja dígito
+  const cepDigits = cepAluno ? String(cepAluno).replace(/\D/g, '') : '';
+  formData.append('cep', cepDigits);
     
-    let url = 'http://127.0.0.1:8080/alunos'
-    fetch(url, {
-        method: 'POST',
-        body: formData
+  let url = 'http://127.0.0.1:8080/alunos'
+  fetch(url, {
+    method: 'POST',
+    body: formData
+  })
+    .then((response) => response.json()) 
+    .then((data) => { 
+      insertList(data.id_aluno, data.nome, data.email, data.data_nascimento, data.data_cadastro, data.cep, data.cidade, data.estado);
     })
-      .then((response) => response.json()) 
-        .then((data) => { 
-            insertList(data.id_aluno, data.nome, data.email, data.data_nascimento, data.data_cadastro);
-        })
-        .catch((error) => {
-            console.error('Erro ao enviar dados do aluno:', error);
-        });
+    .catch((error) => {
+      console.error('Erro ao enviar dados do aluno:', error);
+    });
 }
 
 /*
@@ -149,26 +153,29 @@ function formatarDataBR(dataISO) {
   Função para inserir um novo aluno na tabela
   --------------------------------------------------------------------------------------
 */
-const insertList = (id_aluno, nome, email, data_nascimento, data_cadastro) => {
-    const tabela = document.getElementById('studentsTable').getElementsByTagName('tbody')[0];
-    const novaLinha = tabela.insertRow();
+const insertList = (id_aluno, nome, email, data_nascimento, data_cadastro, cep, cidade, estado) => {
+  const tabela = document.getElementById('studentsTable').getElementsByTagName('tbody')[0];
+  const novaLinha = tabela.insertRow();
 
-    // Inserindo as células
-    novaLinha.insertCell(0).innerText = id_aluno;
-    novaLinha.insertCell(1).innerText = nome;
-    novaLinha.insertCell(2).innerText = email;
-    novaLinha.insertCell(3).innerText = formatarDataBR(data_nascimento);
-    novaLinha.insertCell(4).innerText = formatarDataBR(data_cadastro);
+  // Inserindo as células
+  novaLinha.insertCell(0).innerText = id_aluno;
+  novaLinha.insertCell(1).innerText = nome;
+  novaLinha.insertCell(2).innerText = email;
+  novaLinha.insertCell(3).innerText = formatarDataBR(data_nascimento);
+  novaLinha.insertCell(4).innerText = formatarDataBR(data_cadastro);
+  novaLinha.insertCell(5).innerText = cep || '';
+  novaLinha.insertCell(6).innerText = cidade || '';
+  novaLinha.insertCell(7).innerText = estado || '';
 
-    // Célula de ações
-    const cellAcoes = novaLinha.insertCell(-1);
-    insertButtonStartActivity(cellAcoes);
-    insertButtonDelete(cellAcoes);
-    insertButtonListActivity(cellAcoes);
+  // Célula de ações
+  const cellAcoes = novaLinha.insertCell(-1);
+  insertButtonStartActivity(cellAcoes);
+  insertButtonDelete(cellAcoes);
+  insertButtonListActivity(cellAcoes);
     
-    removeElement()
-    startActivity()
-    listActivity()
+  removeElement()
+  startActivity()
+  listActivity()
 }
 
 /*
@@ -187,13 +194,13 @@ const getAlunos = () => {
       if(data.alunos.length === 0) {
         const novaLinha = tabela.insertRow();
         const cell = novaLinha.insertCell(0);
-        cell.colSpan = 6; // Colspan para abranger todas as colunas
+        cell.colSpan = 9; 
         cell.innerText = 'Nenhum aluno cadastrado.';
       }
       else
       {
         data.alunos.forEach(aluno => {
-        insertList(aluno.id_aluno, aluno.nome, aluno.email, aluno.data_nascimento, aluno.data_cadastro);
+        insertList(aluno.id_aluno, aluno.nome, aluno.email, aluno.data_nascimento, aluno.data_cadastro, aluno.cep, aluno.cidade, aluno.estado);
         });
       }
     
@@ -293,14 +300,14 @@ document.addEventListener('DOMContentLoaded', function () {
             const nome = form.querySelector('input[id="nomeAluno"]').value.trim();
             const email = form.querySelector('input[id="emailAluno"]').value.trim();
             const dataNascimento = form.querySelector('input[id="dataNascimento"]').value.trim();
+            const cep = form.querySelector('input[id="cepAluno"]').value.trim();
 
-            // Exemplo de uso: exibe no console (substitua por sua lógica de requisição)
-            postItem(nome, email, dataNascimento);
-
+            postItem(nome, email, dataNascimento, cep);
 
             form.querySelector('input[id="nomeAluno"]').value = '';
             form.querySelector('input[id="emailAluno"]').value = '';
             form.querySelector('input[id="dataNascimento"]').value = '';
+            form.querySelector('input[id="cepAluno"]').value = '';
 
             // Fechar o modal após o envio
             const modalElement = document.getElementById('exampleModal');
