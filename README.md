@@ -25,11 +25,20 @@ cd postgraduate-software-engineer-frontend-edtech
 
 Não existem dependencias externas a serem instaladas
 
-### 3. Execute o projeto localmente
+### 3. Docker
 
-- Basta abrir o arquivo `index.html` no navegador ou executa-lo com o Live Server do Visual Code.
+O arquivo docker ja encontra-se no projeto para criar o container basta rodar o comando:
 
+```bash
+docker-compose up --build
+```
 ---
+
+### 4. Fluxograma do projeto
+
+<img width="821" height="614" alt="image" src="https://github.com/user-attachments/assets/b093499d-0a7f-48f7-8265-5caf45dbcb98" />
+
+
 
 ## 💡 Observações
 
