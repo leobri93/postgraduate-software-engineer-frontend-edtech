@@ -105,6 +105,42 @@
                     </div>
                 </div>
             </div>
+            <!-- Modal Editar Endereço -->
+            <div class="modal fade" id="editAddressModal" tabindex="-1" aria-labelledby="editAddressModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title fs-5" id="editAddressModalLabel">Editar Endereço do Aluno</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="editAddressForm">
+                                <input type="hidden" id="editAlunoId">
+                                <div class="mb-3">
+                                    <label for="cepEdit" class="form-label">CEP</label>
+                                    <input id="cepEdit" type="text" class="form-control" placeholder="CEP (somente dígitos)" maxlength="9">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="ruaEdit" class="form-label">Rua</label>
+                                    <input id="ruaEdit" type="text" class="form-control" placeholder="Rua">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="cidadeEdit" class="form-label">Cidade</label>
+                                    <input id="cidadeEdit" type="text" class="form-control" placeholder="Cidade">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="estadoEdit" class="form-label">Estado</label>
+                                    <input id="estadoEdit" type="text" class="form-control" placeholder="Estado">
+                                </div>
+                                <div class="text-end mb-3">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="button" class="btn btn-primary" id="saveAddressBtn">Salvar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

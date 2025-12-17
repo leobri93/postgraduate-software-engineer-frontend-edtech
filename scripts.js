@@ -78,6 +78,18 @@ const insertButtonListActivity = (parent) => {
   parent.appendChild(button);
 };
 
+const insertButtonEdit = (parent) => {
+  let button = document.createElement("button");
+  let editIcon = document.createElement("i");
+  editIcon.className = "bi bi-pencil";
+  button.className = "btn btn-warning btn-sm editAddressBtn";
+  button.id = "editAddress";
+  button.type = "button";
+  button.setAttribute("title", "Editar Endereço");
+  button.appendChild(editIcon);
+  parent.appendChild(button);
+};
+
 /*
   --------------------------------------------------------------------------------------
   Função para remover um item da lista de acordo com o click no botão close
@@ -136,6 +148,84 @@ const listActivity = () => {
   }
 }
 
+/*
+  --------------------------------------------------------------------------------------
+  Função para abrir modal de edição de endereço e preencher os campos
+  --------------------------------------------------------------------------------------
+*/
+const editAddress = () => {
+  let edits = document.getElementsByClassName("editAddressBtn");
+  for (let i = 0; i < edits.length; i++) {
+    edits[i].onclick = function () {
+      let div = this.parentElement.parentElement;
+      const idItem = div.getElementsByTagName('td')[0].innerHTML;
+      const cep = div.getElementsByTagName('td')[5].innerText || '';
+      const cidade = div.getElementsByTagName('td')[6].innerText || '';
+      const estado = div.getElementsByTagName('td')[7].innerText || '';
+
+      document.getElementById('editAlunoId').value = idItem;
+      document.getElementById('cepEdit').value = cep;
+      document.getElementById('cidadeEdit').value = cidade;
+      document.getElementById('estadoEdit').value = estado;
+      document.getElementById('ruaEdit').value = '';
+
+      const modalElement = document.getElementById('editAddressModal');
+      const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+      modalInstance.show();
+    }
+  }
+}
+
+/*
+  --------------------------------------------------------------------------------------
+  Função para enviar PUT para /alunos/endereco e atualizar a tabela
+  --------------------------------------------------------------------------------------
+*/
+const updateAddress = () => {
+  const id_aluno = document.getElementById('editAlunoId').value;
+  let cep = document.getElementById('cepEdit').value || '';
+  // Sanitiza CEP
+  const cepDigits = cep ? String(cep).replace(/\D/g, '') : '';
+  const rua = document.getElementById('ruaEdit').value != "" ? document.getElementById('ruaEdit').value : '';
+  const cidade = document.getElementById('cidadeEdit').value != "" ? document.getElementById('cidadeEdit').value : '';
+  const estado = document.getElementById('estadoEdit').value != "" ? document.getElementById('estadoEdit').value : '';
+
+  const formData = new FormData();
+  formData.append('cep', cepDigits);
+  formData.append('rua', rua);
+  formData.append('cidade', cidade);
+  formData.append('estado', estado);
+
+  fetch(`http://127.0.0.1:8080/alunos/endereco?id_aluno=${id_aluno}`, {
+    method: 'PUT',
+    body: formData
+  })
+    .then(response => response.json())
+    .then((data) => {
+      // Atualiza a linha da tabela com os novos dados retornados ou com os enviados
+      const tabela = document.getElementById('studentsTable').getElementsByTagName('tbody')[0];
+      for (let i = 0; i < tabela.rows.length; i++) {
+        const row = tabela.rows[i];
+        if (row.cells[0].innerText == id_aluno) {
+          row.cells[5].innerText = data.cep || cepDigits || '';
+          row.cells[6].innerText = data.cidade || cidade || '';
+          row.cells[7].innerText = data.estado || estado || '';
+          break;
+        }
+      }
+
+      // Fecha o modal
+      const modalElement = document.getElementById('editAddressModal');
+      const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+      modalInstance.hide();
+      alert('Endereço atualizado com sucesso!');
+    })
+    .catch(error => {
+      console.error('Erro ao atualizar endereço:', error);
+      alert('Erro ao atualizar endereço.');
+    });
+}
+
 function formatarDataBR(dataISO) {
     if (!dataISO) return '';
     // Aceita tanto 'YYYY-MM-DD' quanto 'YYYY-MM-DDTHH:mm:ss'
@@ -169,6 +259,7 @@ const insertList = (id_aluno, nome, email, data_nascimento, data_cadastro, cep, 
 
   // Célula de ações
   const cellAcoes = novaLinha.insertCell(-1);
+  insertButtonEdit(cellAcoes);
   insertButtonStartActivity(cellAcoes);
   insertButtonDelete(cellAcoes);
   insertButtonListActivity(cellAcoes);
@@ -176,6 +267,7 @@ const insertList = (id_aluno, nome, email, data_nascimento, data_cadastro, cep, 
   removeElement()
   startActivity()
   listActivity()
+  editAddress()
 }
 
 /*
@@ -314,5 +406,13 @@ document.addEventListener('DOMContentLoaded', function () {
             const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
             modalInstance.hide();
         });
+          // Handler para o botão salvar do modal de editar endereço
+          const saveBtn = document.getElementById('saveAddressBtn');
+          if (saveBtn) {
+              saveBtn.addEventListener('click', function (event) {
+                  event.preventDefault();
+                  updateAddress();
+              });
+          }
     }
 });
