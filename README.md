@@ -36,7 +36,8 @@ docker-compose up --build
 
 ### 4. Fluxograma do projeto
 
-<img width="821" height="614" alt="image" src="https://github.com/user-attachments/assets/b093499d-0a7f-48f7-8265-5caf45dbcb98" />
+<img width="827" height="670" alt="image" src="https://github.com/user-attachments/assets/7c094e7d-f6b4-4692-8b6e-3c9c2cc49c71" />
+
 
 
 
